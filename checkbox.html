@@ -21,26 +21,20 @@
       function formatForCalendar(text) {
         if (!text) return '';
 
-        // 1. Remove Filepath, Quote, and EVERYTHING after them entirely
         text = text.replace(/Filepath[\s\S]*/gi, '');
         text = text.replace(/Quote[\s\S]*/gi, '');
 
-        // 2. Remove all markdown formatting symbols
-        text = text.replace(/^#{1,6}\s+/gm, ''); // '#' headers
-        text = text.replace(/^---\s*$/gm, '');   // '---' dividers
-        text = text.replace(/[\*_]{1,3}/g, '');  // bold/italic
+        text = text.replace(/^#{1,6}\s+/gm, ''); 
+        text = text.replace(/^---\s*$/gm, '');   
+        text = text.replace(/[\*_]{1,3}/g, '');  
         
-        // 3. Remove the specific header lines (Name & Contact, Phone, Email, Address, Request)
         text = text.replace(/^Name & Contact.*/gim, '');
         text = text.replace(/^Phone.*/gim, '');
         text = text.replace(/^Email.*/gim, '');
         text = text.replace(/^Address.*/gim, '');
         text = text.replace(/^Request.*/gim, '');
 
-        // 4. Remove invisible spacing characters that sometimes appear in empty Trello fields
         text = text.replace(/\u200C/g, '');
-
-        // 5. Compress the massive empty gaps left behind into clean, double-spaced lines
         text = text.replace(/\n{2,}/g, '\n\n');
         
         return text.trim();
@@ -53,7 +47,16 @@
             const desc = encodeURIComponent(formatForCalendar(card.desc));
             const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${desc}`;
             
-            window.open(url, '_blank');
+            // SAFARI FIX: Create an invisible link, click it, and remove it
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer'; // This severs the connection to the Trello iframe
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
             setTimeout(() => { e.target.checked = false; }, 1000);
           });
         }
