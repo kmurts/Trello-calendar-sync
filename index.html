@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  </head>
+  <body>
+    <script>
+      window.TrelloPowerUp.initialize({
+        'card-back-section': function(t, options) {
+          return {
+            title: 'Calendar Sync',
+            icon: 'https://img.icons8.com/ios/50/000000/calendar.png',
+            content: {
+              type: 'iframe',
+              url: t.signUrl('./checkbox.html'),
+              height: 50
+            }
+          };
+        }
+      });
+    </script>
+  </body>
+</html>
