@@ -3,27 +3,9 @@
   <head>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
     <style>
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        padding: 5px;
-        margin: 0;
-        background-color: transparent; 
-      }
-      label {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        color: white; 
-      }
-      input[type="checkbox"] {
-        cursor: pointer;
-        width: 16px;
-        height: 16px;
-        margin: 0;
-      }
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 5px; margin: 0; background-color: transparent; }
+      label { cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: white; }
+      input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; margin: 0; }
     </style>
   </head>
   <body>
@@ -36,46 +18,39 @@
     <script>
       const t = window.TrelloPowerUp.iframe();
 
-      // UPDATED FUNCTION: Advanced formatting and filtering
       function formatForCalendar(text) {
         if (!text) return '';
+
+        // 1. Split the text into sections based on the "###" headers
+        let sections = text.split(/(?=### )/);
         
-        // 1. Strip out all asterisks and underscores to clean up formatting first
-        text = text.replace(/[\*_]{1,3}/g, '');
+        // 2. Filter out any section that contains "Filepath" or "Quote"
+        let filteredSections = sections.filter(section => {
+          return !section.includes('### Filepath') && !section.includes('### Quote');
+        });
+        
+        // 3. Rejoin the remaining text
+        let cleanText = filteredSections.join('');
 
-        // 2. Remove the Filepath and Quote sections (and their contents) entirely
-        text = text.replace(/^#{1,6}\s+(Filepath|Quote)[\s\S]*?(?=(^#{1,6}\s+|$))/gim, '');
+        // 4. Strip out the Markdown symbols
+        cleanText = cleanText.replace(/#{1,6}\s/g, ''); // Removes ### headers
+        cleanText = cleanText.replace(/---/g, '');      // Removes --- dividers
+        cleanText = cleanText.replace(/[\*_]/g, '');    // Removes bold/italic symbols like **
+        
+        // 5. Clean up extra blank lines left behind
+        cleanText = cleanText.replace(/\n{3,}/g, '\n\n').trim();
 
-        // 3. Remove all horizontal lines (---)
-        text = text.replace(/^---\s*$/gm, '');
-
-        // 4. Wrap the specific titles we want to keep in HTML bold tags
-        text = text.replace(/^#{1,6}\s+(Name & Contact|Phone|Email|Address|Request)/gim, '<b>$1</b>');
-
-        // 5. Remove any leftover heading symbols (like #) just in case
-        text = text.replace(/^#{1,6}\s+/gm, '');
-
-        // 6. Fix spacing to avoid huge gaps left behind by deleted text
-        text = text.replace(/\n{3,}/g, '\n\n').trim();
-
-        // 7. Convert line breaks to HTML so Google Calendar renders them correctly alongside the bold tags
-        text = text.replace(/\n/g, '<br>');
-
-        return text;
+        return cleanText;
       }
 
       document.getElementById('gcal-trigger').addEventListener('change', function(e) {
         if (e.target.checked) {
           t.card('name', 'desc').then(function(card) {
             const title = encodeURIComponent(card.name || '');
-            
-            // Run the description through our new formatting function
             const desc = encodeURIComponent(formatForCalendar(card.desc));
-            
             const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${desc}`;
             
             window.open(url, '_blank');
-            
             setTimeout(() => { e.target.checked = false; }, 1000);
           });
         }
