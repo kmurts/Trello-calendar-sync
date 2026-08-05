@@ -1,31 +1,67 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <!-- We must include the Trello Power-Up library -->
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
     <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 5px; margin: 0; }
-      label { cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: #172b4d; }
-      input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; }
+      /* Style the overall container (the body of the iframe) */
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        padding: 5px;
+        margin: 0;
+        /* I added this line just in case, to make the iframe background transparent */
+        background-color: transparent; 
+      }
+      
+      /* Style the label that holds the checkbox and text */
+      label {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        
+        /* I CHANGED THIS LINE BELOW FROM A DARK COLOR TO WHITE */
+        color: white; 
+      }
+      
+      /* Style the checkbox itself to make it a bit bigger */
+      input[type="checkbox"] {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        margin: 0;
+      }
     </style>
   </head>
   <body>
     
+    <!-- This is the actual checkbox and text on the card -->
     <label>
       <input type="checkbox" id="gcal-trigger">
       Open as new Google Calendar Event
     </label>
 
     <script>
+      // Initialize the Power-Up iframe connection
       const t = window.TrelloPowerUp.iframe();
 
+      // Listen for when the checkbox is clicked
       document.getElementById('gcal-trigger').addEventListener('change', function(e) {
         if (e.target.checked) {
+          // 1. Get the card's name and description from Trello
           t.card('name', 'desc').then(function(card) {
             const title = encodeURIComponent(card.name || '');
             const desc = encodeURIComponent(card.desc || '');
+            
+            // 2. Build the Google Calendar URL with the card info
             const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${desc}`;
             
+            // 3. Open the new tab (Trello requires we use t.showRemote for security)
             window.open(url, '_blank');
+            
+            // 4. Uncheck the box after a short delay so it can be used again later
             setTimeout(() => { e.target.checked = false; }, 1000);
           });
         }
