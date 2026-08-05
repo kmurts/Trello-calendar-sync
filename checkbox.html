@@ -20,9 +20,6 @@
       const checkbox = document.getElementById('gcal-trigger');
       const link = document.getElementById('gcal-link');
 
-      // --- ADD YOUR CALENDAR ID HERE ---
-      const targetCalendarId = c_172dcd33acba3a6015e240ec7e49455cbc85abb9515bebea2c561949c8dd2b1e@group.calendar.google.com; 
-
       function formatForCalendar(text) {
         if (!text) return '';
 
@@ -49,10 +46,8 @@
         t.card('name', 'desc').then(function(card) {
           const title = encodeURIComponent(card.name || '');
           const desc = encodeURIComponent(formatForCalendar(card.desc));
-          const calId = encodeURIComponent(targetCalendarId);
           
-          // Added the &src= parameter to the end of the URL
-          const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${desc}&src=${calId}`;
+          const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${desc}`;
           
           link.href = `./redirect.html?to=${encodeURIComponent(gcalUrl)}`;
         });
