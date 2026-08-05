@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Loading Calendar...</title>
+  </head>
+  <body>
+    <script>
+      // This script grabs the Google Calendar link and instantly redirects the page
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetUrl = urlParams.get('to');
+      if (targetUrl) {
+        window.location.replace(targetUrl);
+      }
+    </script>
+  </body>
+</html>
