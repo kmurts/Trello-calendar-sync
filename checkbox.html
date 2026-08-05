@@ -36,15 +36,32 @@
     <script>
       const t = window.TrelloPowerUp.iframe();
 
-      // NEW FUNCTION: This strips out the Markdown symbols from Trello
-      function cleanMarkdown(text) {
+      // UPDATED FUNCTION: Advanced formatting and filtering
+      function formatForCalendar(text) {
         if (!text) return '';
-        return text
-          .replace(/^#{1,6}\s+/gm, '')       // Removes headers (e.g., ###, #)
-          .replace(/^---\s*$/gm, '')         // Removes horizontal lines (---)
-          .replace(/[\*_]{1,3}/g, '')        // Removes bold and italic markers (*, _, **, __)
-          .replace(/\n{3,}/g, '\n\n')        // Cleans up extra empty lines left behind
-          .trim();
+        
+        // 1. Strip out all asterisks and underscores to clean up formatting first
+        text = text.replace(/[\*_]{1,3}/g, '');
+
+        // 2. Remove the Filepath and Quote sections (and their contents) entirely
+        text = text.replace(/^#{1,6}\s+(Filepath|Quote)[\s\S]*?(?=(^#{1,6}\s+|$))/gim, '');
+
+        // 3. Remove all horizontal lines (---)
+        text = text.replace(/^---\s*$/gm, '');
+
+        // 4. Wrap the specific titles we want to keep in HTML bold tags
+        text = text.replace(/^#{1,6}\s+(Name & Contact|Phone|Email|Address|Request)/gim, '<b>$1</b>');
+
+        // 5. Remove any leftover heading symbols (like #) just in case
+        text = text.replace(/^#{1,6}\s+/gm, '');
+
+        // 6. Fix spacing to avoid huge gaps left behind by deleted text
+        text = text.replace(/\n{3,}/g, '\n\n').trim();
+
+        // 7. Convert line breaks to HTML so Google Calendar renders them correctly alongside the bold tags
+        text = text.replace(/\n/g, '<br>');
+
+        return text;
       }
 
       document.getElementById('gcal-trigger').addEventListener('change', function(e) {
@@ -52,9 +69,8 @@
           t.card('name', 'desc').then(function(card) {
             const title = encodeURIComponent(card.name || '');
             
-            // Run the description through our cleanup function before encoding it
-            const cleanDesc = cleanMarkdown(card.desc);
-            const desc = encodeURIComponent(cleanDesc);
+            // Run the description through our new formatting function
+            const desc = encodeURIComponent(formatForCalendar(card.desc));
             
             const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${desc}`;
             
