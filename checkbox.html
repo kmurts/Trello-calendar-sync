@@ -4,19 +4,21 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
     <style>
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 5px; margin: 0; background-color: transparent; }
-      label { cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: white; }
-      input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; margin: 0; }
+      a.custom-link { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: white; text-decoration: none; cursor: pointer; }
+      input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; margin: 0; pointer-events: none; }
     </style>
   </head>
   <body>
     
-    <label>
+    <a id="gcal-link" class="custom-link" target="_blank" rel="noopener noreferrer">
       <input type="checkbox" id="gcal-trigger">
       Open as new Google Calendar Event
-    </label>
+    </a>
 
     <script>
       const t = window.TrelloPowerUp.iframe();
+      const checkbox = document.getElementById('gcal-trigger');
+      const link = document.getElementById('gcal-link');
 
       function formatForCalendar(text) {
         if (!text) return '';
@@ -40,26 +42,22 @@
         return text.trim();
       }
 
-      document.getElementById('gcal-trigger').addEventListener('change', function(e) {
-        if (e.target.checked) {
-          t.card('name', 'desc').then(function(card) {
-            const title = encodeURIComponent(card.name || '');
-            const desc = encodeURIComponent(formatForCalendar(card.desc));
-            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${desc}`;
-            
-            // SAFARI FIX: Create an invisible link, click it, and remove it
-            const link = document.createElement('a');
-            link.href = url;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer'; // This severs the connection to the Trello iframe
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            setTimeout(() => { e.target.checked = false; }, 1000);
-          });
-        }
+      t.render(function() {
+        t.card('name', 'desc').then(function(card) {
+          const title = encodeURIComponent(card.name || '');
+          const desc = encodeURIComponent(formatForCalendar(card.desc));
+          
+          // Generate the standard Google Calendar URL
+          const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${desc}`;
+          
+          // ROUTE THROUGH THE MIDDLEMAN to bypass Safari ITP
+          link.href = `./redirect.html?to=${encodeURIComponent(gcalUrl)}`;
+        });
+      });
+
+      link.addEventListener('click', function() {
+        checkbox.checked = true;
+        setTimeout(() => { checkbox.checked = false; }, 1000);
       });
     </script>
   </body>
