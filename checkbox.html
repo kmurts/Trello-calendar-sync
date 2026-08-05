@@ -21,26 +21,32 @@
       function formatForCalendar(text) {
         if (!text) return '';
 
-        // 1. Split the text into sections based on the "###" headers
-        let sections = text.split(/(?=### )/);
-        
-        // 2. Filter out any section that contains "Filepath" or "Quote"
-        let filteredSections = sections.filter(section => {
-          return !section.includes('### Filepath') && !section.includes('### Quote');
-        });
-        
-        // 3. Rejoin the remaining text
-        let cleanText = filteredSections.join('');
+        // 1. Split the text into chunks using the horizontal dividers (---)
+        let chunks = text.split(/\s*---\s*/);
+        let keepChunks = [];
 
-        // 4. Strip out the Markdown symbols
-        cleanText = cleanText.replace(/#{1,6}\s/g, ''); // Removes ### headers
-        cleanText = cleanText.replace(/---/g, '');      // Removes --- dividers
-        cleanText = cleanText.replace(/[\*_]/g, '');    // Removes bold/italic symbols like **
-        
-        // 5. Clean up extra blank lines left behind
-        cleanText = cleanText.replace(/\n{3,}/g, '\n\n').trim();
+        for (let i = 0; i < chunks.length; i++) {
+          let chunk = chunks[i];
+          
+          // 2. If the chunk contains Filepath or Quote, skip it entirely
+          if (/Filepath/i.test(chunk) || /Quote/i.test(chunk)) {
+            continue;
+          }
 
-        return cleanText;
+          // 3. Delete any line that starts with a "#" to completely remove the header titles
+          chunk = chunk.replace(/^#+.*$/gm, '');
+
+          // 4. Clean up any invisible characters (like the ones in your blank Email field) and trim spaces
+          chunk = chunk.replace(/\u200C/g, '').trim();
+
+          // 5. If there is actual text left, keep it
+          if (chunk) {
+            keepChunks.push(chunk);
+          }
+        }
+        
+        // 6. Join the kept data together with line breaks
+        return keepChunks.join('\n\n');
       }
 
       document.getElementById('gcal-trigger').addEventListener('change', function(e) {
